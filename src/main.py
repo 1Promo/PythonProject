@@ -10,12 +10,11 @@ def clear_names(file_name: str) -> list:
                     new_name += symbol
             if new_name.isalpha():
                 new_names_list.append(new_name)
-
     return new_names_list
 
 
 if __name__ == "__main__":
-    cleared_name = clear_names("names.txt")
+    cleared_name = clear_names("../data/names.txt")
 
     for i in cleared_name:
         print(i)
