@@ -1,7 +1,7 @@
 def clear_names(file_name: str) -> list:
     """Функция для очистки имен от лишних символов"""
     new_names_list = list()
-    with open('data/' + file_name) as names_file:
+    with open("data/" + file_name) as names_file:
         names_list = names_file.read().split()
         for name_item in names_list:
             new_name = ""
