@@ -1,38 +1,56 @@
-from src.masks import mask_card_number, mask_account_number
+# Файл: src/widget.py
+
+from src.masks import get_mask_card_number, get_mask_account
 
 
-def mask_account_card(data: str) -> str:
+def mask_account_card(info_string: str) -> str:
     """
-    Функция маскирует номер карты или счёта в переданной строке.
+    Маскирует номер карты или счета в зависимости от типа
 
-    Примеры входных данных:
-    - "Visa Platinum 7000792289606361"
-    - "Maestro 7000792289606361"
-    - "Счет 73654108430135874305"
-
-    :param data: Строка с типом и номером карты или счёта
-    :type data: str
-    :return: Замаскированная строка в соответствии с видом (карта или счёт)
-    :rtype: str
-
-    Пример для карты:
-    Вход: "Visa Platinum 7000792289606361"
-    Выход: "Visa Platinum 7000 79** **** 6361"
-
-    Пример для счёта:
-    Вход: "Счет 73654108430135874305"
-    Выход: "Счет **4305"
+    :param info_string: строка с типом и номером (например, "Visa Platinum 7000792289606361")
+    :return: строка с замаскированным номером
     """
-    # Проверяем, является ли входным значением счёт
-    if data.startswith("Счет"):
-        # Разделяем строку на тип и номер
-        splitted = data.split(maxsplit=1)
-        # Маскируем номер счёта
-        masked_number = mask_account_number(splitted[1])
-        return f"{splitted[0]} {masked_number}"
+    # Разделяем строку на тип и номер
+    parts = info_string.split()
+
+    # Проверяем, что строка содержит хотя бы два элемента
+    if len(parts) < 2:
+        return "Ошибка: некорректный формат данных"
+
+    # Получаем тип и номер
+    type_name = parts[0]
+    number = parts[1]
+
+    # Маскируем в зависимости от типа
+    if type_name == "Счет":
+        return f"{type_name} {get_mask_account(number)}"
     else:
-        # Разделяем строку на тип и номер для карты
-        splitted = data.rsplit(" ", 1)
-        # Маскируем номер карты
-        masked_number = mask_card_number(splitted[1])
-        return f"{splitted[0]} {masked_number}"
+        return f"{type_name} {get_mask_card_number(number)}"
+
+
+# Примеры использования:
+print(mask_account_card("Visa Platinum 7000792289606361"))  # Visa Platinum 7000 79** **** 6361
+print(mask_account_card("Счет 73654108430135874305"))  # Счет **4305
+print(mask_account_card("Maestro 1596837868705199"))  # Maestro 1596 83** **** 5199
+print(mask_account_card("MasterCard 7158300734726758"))  # MasterCard 7158 30** **** 6758
+print(mask_account_card("Visa Classic 6831982476737658"))  # Visa Classic 6831 98** **** 7658
+print(mask_account_card("Visa Gold 5999414228426353"))  # Visa Gold 5999 41** **** 6353
+print(mask_account_card("Счет 35383033474447895560"))  # Счет **5560
+print(mask_account_card("Счет 64686473678894779589"))  # Счет **9589
+
+
+def get_date(date_string):
+    # Разделяем исходную строку по символу 'T'
+    date_part = date_string.split('T')[0]
+
+    # Разделяем дату по символу '-'
+    year, month, day = date_part.split('-')
+
+    # Формируем итоговую строку в нужном формате
+    result = f"{day}.{month}.{year}"
+
+    return result
+# Тестирование функции
+input_date = "2024-03-11T02:26:18.671407"
+formatted_date = get_date(input_date)
+print(formatted_date)  # Вывод: 11.03.2024
