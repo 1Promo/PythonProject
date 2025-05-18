@@ -6,9 +6,7 @@ from src.masks import get_mask_card_number, get_mask_account
 def mask_account_card(info_string: str) -> str:
     """
     Маскирует номер карты или счета в зависимости от типа
-
-    :param info_string: строка с типом и номером (например, "Visa Platinum 7000792289606361")
-    :return: строка с замаскированным номером
+    строка с типом и номером (например, "Visa Platinum 7000792289606361")
     """
     # Разделяем строку на тип и номер
     parts = info_string.split()
@@ -39,7 +37,7 @@ print(mask_account_card("Счет 35383033474447895560"))  # Счет **5560
 print(mask_account_card("Счет 64686473678894779589"))  # Счет **9589
 
 
-def get_date(date_string):
+def get_date(date_string: str) -> str:
     # Разделяем исходную строку по символу 'T'
     date_part = date_string.split('T')[0]
 
@@ -50,6 +48,8 @@ def get_date(date_string):
     result = f"{day}.{month}.{year}"
 
     return result
+
+
 # Тестирование функции
 input_date = "2024-03-11T02:26:18.671407"
 formatted_date = get_date(input_date)
