@@ -9,7 +9,7 @@ def mask_account_card(info_string: str) -> str:
     строка с типом и номером (например, "Visa Platinum 7000792289606361")
     """
     # Разделяем строку на тип и номер
-    parts = info_string.split()
+    parts = info_string.rsplit(" ", 1)
 
     # Проверяем, что строка содержит хотя бы два элемента
     if len(parts) < 2:
