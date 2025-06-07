@@ -1,6 +1,7 @@
 def filter_by_state(operations: list, state: str = 'EXECUTED') -> list:
 
-    """Сортирует список по заданному образцу"""
+    """Функция возвращает новый список словарей, содержащий только те словари, у которых ключ
+state соответствует указанному значению."""
 
     filtered_list = []
 
@@ -27,19 +28,20 @@ print("Операции со статусом EXECUTED:")
 print(executed_operations)
 
 
-# Случай 2: Фильтрация по CANCELED
+# Случай 2: Фильтрация по умолчанию CANCELED
 canceled_operations = filter_by_state(data, 'CANCELED')
 print("\nОперации со статусом CANCELED:")
 print(canceled_operations)
 
 
-"""Сортирует список операций по дате."""
+"""Функция возвращает новый список, отсортированный по дате."""
 
 
 def sort_by_date(operations: list, ascending: bool = False) -> list:
     return sorted(operations, key=lambda x: x['date'], reverse=not ascending)
 
 
+# Список для сортировки операций
 data = [
     {'id': 41428829, 'state': 'EXECUTED', 'date': '2019-07-03T18:35:29.512364'},
     {'id': 939719570, 'state': 'EXECUTED', 'date': '2018-06-30T02:08:58.425572'},

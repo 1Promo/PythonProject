@@ -1,5 +1,17 @@
 # "Учебный проект"
 
-#proccessing.py
-#Сортирует список по образцу: EXECUTED, CANCELED.
-#Сортирует список операций по дате.
+## Описание:
+
+Учебный проект - это веб-приложение на Python для управления задачами и проектами.
+
+## Установка:
+
+1. Клонируйте репозиторий:
+```
+git clone https://github.com/1Promo/PythonProject.git
+```
+2. Установите зависимости:
+```
+pip install -r poetry.lock
+pip install -r pyproject.toml
+```
