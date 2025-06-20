@@ -22,6 +22,10 @@ isort = "^6.0.1"
 mypy = "^1.15.0"
 
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.0"
+
 [tool.mypy]
 disallow_untyped_defs = true
 no_implicit_optional = true
