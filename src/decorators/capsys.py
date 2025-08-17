@@ -1,3 +1,6 @@
+from src.decorators import log
+
+
 @pytest.fixture
 def example_function():
     @log()
