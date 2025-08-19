@@ -1,75 +1,76 @@
 import os
 import requests
 from dotenv import load_dotenv
-from typing import Dict
+from typing import Dict, Union
 
 load_dotenv()
 
-API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
-BASE_URL = "https://api.apilayer.com/exchangerates_data/latest"
 
+class CurrencyConverter:
+    def __init__(self):
+        self.api_key = os.getenv("EXCHANGE_RATE_API_KEY")
+        self.base_url = "https://api.apilayer.com/exchangerates_data/convert"
+        self.cache = {}  # Кэш курсов валют
 
-def convert_to_rub(transaction: Dict) -> float:
-    """Конвертирует сумму транзакции в рубли по текущему курсу.
+    def convert_to_rub(self, transaction: Dict[str, Union[str, dict]]) -> float:
+        """
+        Конвертирует сумму транзакции в рубли.
 
-    Для транзакций в RUB возвращает сумму без конвертации.
-    Для USD и EUR выполняет конвертацию через внешнее API.
+        Args:
+            transaction: Словарь с данными о транзакции, должен содержать:
+                - operationAmount.amount (str/float): сумма
+                - operationAmount.currency.code (str): код валюты (RUB, USD, EUR)
 
-    Args:
-        transaction: Словарь с данными о транзакции, должен содержать
-            'operationAmount' с полями 'amount' и 'currency' (с кодом валюты)
+        Returns:
+            Сумма в рублях (float)
 
-    Returns:
-        Сумма транзакции в рублях (float)
+        Raises:
+            ValueError: При ошибках валидации или API
+        """
+        try:
+            # Извлекаем данные из транзакции
+            amount_str = transaction["operationAmount"]["amount"]
+            currency = transaction["operationAmount"]["currency"]["code"].upper()
+            amount = float(amount_str)
 
-    Raises:
-        ValueError: Если валюта не поддерживается, отсутствует API ключ или
-            возникла ошибка при запросе к API
+            # Если валюта уже в рублях
+            if currency == "RUB":
+                return amount
 
-    Examples:
-        >>> transaction = {
-        ...     'operationAmount': {
-        ...         'amount': '100.0',
-        ...         'currency': {'code': 'RUB'}
-        ...     }
-        ... }
-        >>> convert_to_rub(transaction)
-        100.0
+            # Проверка поддерживаемых валют
+            if currency not in ("USD", "EUR"):
+                raise ValueError(f"Неподдерживаемая валюта: {currency}")
 
-        >>> transaction = {
-        ...     'operationAmount': {
-        ...         'amount': '10.0',
-        ...         'currency': {'code': 'USD'}
-        ...     }
-        ... }
-        >>> convert_to_rub(transaction)  # При курсе 90.5 RUB/USD
-        905.0
-    """
-    try:
-        operation_amount = transaction["operationAmount"]
-        amount = float(operation_amount["amount"])
-        currency = operation_amount["currency"]["code"].upper()
+            # Получаем курс
+            rate = self._get_exchange_rate(currency)
+            return round(amount * rate, 2)
 
-        if currency == "RUB":
-            return amount
+        except KeyError as e:
+            raise ValueError(f"Неверная структура транзакции: отсутствует поле {e}")
+        except ValueError as e:
+            raise ValueError(f"Ошибка конвертации суммы: {e}")
 
-        if currency not in ("USD", "EUR"):
-            raise ValueError(f"Unsupported currency: {currency}")
+    def _get_exchange_rate(self, currency: str) -> float:
+        """Получает курс валюты к рублю с кэшированием."""
+        if currency in self.cache:
+            return self.cache[currency]
 
-        if not API_KEY:
-            raise ValueError("API key not configured")
+        if not self.api_key:
+            raise ValueError("API ключ не настроен")
 
-        response = requests.get(
-            BASE_URL, params={"base": currency, "symbols": "RUB"}, headers={"apikey": API_KEY}, timeout=10
-        )
+        try:
+            response = requests.get(
+                self.base_url,
+                params={"base": currency, "symbols": "RUB"},
+                headers={"apikey": self.api_key},
+                timeout=10,
+            )
+            response.raise_for_status()
 
-        if not response.ok:
-            raise ValueError(f"API request failed: {response.text}")
+            data = response.json()
+            rate = data["rates"]["RUB"]
+            self.cache[currency] = rate  # Кэшируем курс
+            return rate
 
-        rate = response.json()["rates"]["RUB"]
-        return amount * rate
-
-    except KeyError as e:
-        raise ValueError(f"Invalid transaction structure: missing {e}")
-    except ValueError as e:
-        raise ValueError(f"Invalid amount value: {e}")
+        except requests.RequestException as e:
+            raise ValueError(f"Ошибка API: {str(e)}")
