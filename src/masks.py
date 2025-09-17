@@ -1,24 +1,23 @@
-﻿def get_mask_card_number(card_number: str) -> str:
-    """
-    Маскирует номер банковской карты.
-    Формат маски: XXXX XX** **** XXXX
-    Где X - это цифра номера карты
-    """
+﻿import logging
+from logging_config import LoggerConfig
 
-    # Формируем маску
-    masked_number = card_number[:4] + " " + card_number[4:6] + "** " + "**** " + card_number[-4:]
-
-    return masked_number
+# Создаем логер для модуля masks
+logger = LoggerConfig.create_logger("masks")
 
 
-def get_mask_account(account_number: str) -> str:
-    """
-    Маскирует номер банковского счета.
-    Формат маски: XXXX XX** **** XXXX
-    Где X - это цифра номера счета
-    """
+class MasksModule:
+    def apply_mask(self, data):
+        try:
+            # Имитация обработки данных
+            if not data:
+                raise ValueError("Данные не предоставлены")
 
-    # Формируем маску
-    masked_account = "**" + account_number[-4:]
+            logger.info("Применение маски к данным")
+            # Здесь логика применения маски
+            result = f"Маска применена к {data}"
+            logger.debug(f"Результат: {result}")
+            return result
 
-    return masked_account
+        except Exception as e:
+            logger.error(f"Ошибка при применении маски: {str(e)}")
+            raise
