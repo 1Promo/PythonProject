@@ -34,7 +34,7 @@ try:
     for t in csv_data[:2]:  # первые 2 транзакции
         print(t)
 except Exception as e:
-    print(f!Ошибка CSV: {e}")
+    print(f"Ошибка CSV: {e}")
 
 
 # Чтение Excel
@@ -44,4 +44,4 @@ try:
     for t in excel_data[:2]:  # первые 2 транзакции
         print(t)
 except Exception as e:
-    print(f!Ошибка Excel: {e}")
+    print(f"Ошибка Excel: {e}")
