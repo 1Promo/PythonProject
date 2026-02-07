@@ -1,75 +1,54 @@
 import os
 import requests
 from dotenv import load_dotenv
-from typing import Dict
+from typing import Dict, Union
 
 load_dotenv()
 
-API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
-BASE_URL = "https://api.apilayer.com/exchangerates_data/latest"
 
+class CurrencyConverter:
+    def __init__(self):
+        api_key = os.getenv("EXCHANGE_RATE_API_KEY")
+        base_url = "https://api.apilayer.com/exchangerates_data/convert"
 
-def convert_to_rub(transaction: Dict) -> float:
-    """Конвертирует сумму транзакции в рубли по текущему курсу.
+        def _get_exchange_rate(currency: str, amount: float) -> float:
+            """
+            Получает курс обмена указанной валюты на рубли (RUB) через внешний API.
+            """
+            if not api_key:
+                raise ValueError("API ключ не настроен")
+            try:
+                response = requests.get(
+                    base_url,
+                    params={"to": "RUB", "from": currency, "amount": amount},
+                    headers={"apikey": api_key},
+                    timeout=10,
+                )
+                response.raise_for_status()
+                data = response.json()
+                rate = data["result"]
+                return rate
+            except requests.RequestException as e:
+                raise ValueError(f"Ошибка API: {str(e)}")
 
-    Для транзакций в RUB возвращает сумму без конвертации.
-    Для USD и EUR выполняет конвертацию через внешнее API.
+        def convert_to_rub(transaction: Dict[str, Union[str, dict]]) -> float:
+            """
+            Конвертирует сумму транзакции в рубли (RUB), если валюта отличается от RUB.
+            """
+            try:
+                amount_str = transaction["operationAmount"]["amount"]
+                currency = transaction["operationAmount"]["currency"]["code"].upper()
+                amount = float(amount_str)
 
-    Args:
-        transaction: Словарь с данными о транзакции, должен содержать
-            'operationAmount' с полями 'amount' и 'currency' (с кодом валюты)
+                if currency == "RUB":
+                    return amount
 
-    Returns:
-        Сумма транзакции в рублях (float)
+                if currency not in ("USD", "EUR"):
+                    raise ValueError(f"Неподдерживаемая валюта: {currency}")
 
-    Raises:
-        ValueError: Если валюта не поддерживается, отсутствует API ключ или
-            возникла ошибка при запросе к API
+                return _get_exchange_rate(currency, amount)
 
-    Examples:
-        >>> transaction = {
-        ...     'operationAmount': {
-        ...         'amount': '100.0',
-        ...         'currency': {'code': 'RUB'}
-        ...     }
-        ... }
-        >>> convert_to_rub(transaction)
-        100.0
-
-        >>> transaction = {
-        ...     'operationAmount': {
-        ...         'amount': '10.0',
-        ...         'currency': {'code': 'USD'}
-        ...     }
-        ... }
-        >>> convert_to_rub(transaction)  # При курсе 90.5 RUB/USD
-        905.0
-    """
-    try:
-        operation_amount = transaction["operationAmount"]
-        amount = float(operation_amount["amount"])
-        currency = operation_amount["currency"]["code"].upper()
-
-        if currency == "RUB":
-            return amount
-
-        if currency not in ("USD", "EUR"):
-            raise ValueError(f"Unsupported currency: {currency}")
-
-        if not API_KEY:
-            raise ValueError("API key not configured")
-
-        response = requests.get(
-            BASE_URL, params={"base": currency, "symbols": "RUB"}, headers={"apikey": API_KEY}, timeout=10
-        )
-
-        if not response.ok:
-            raise ValueError(f"API request failed: {response.text}")
-
-        rate = response.json()["rates"]["RUB"]
-        return amount * rate
-
-    except KeyError as e:
-        raise ValueError(f"Invalid transaction structure: missing {e}")
-    except ValueError as e:
-        raise ValueError(f"Invalid amount value: {e}")
+            except KeyError as e:
+                raise ValueError(f"Неверная структура транзакции: отсутствует поле {e}")
+            except ValueError as e:
+                raise ValueError(f"Ошибка конвертации суммы: {e}")
